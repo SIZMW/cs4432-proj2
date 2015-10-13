@@ -7,18 +7,17 @@ import simpledb.query.*;
 import java.util.*;
 
 /**
- * The Plan class for the <i>sort</i> operator.
- * @author Edward Sciore
+ * The Smart Plan class for the <i>sort</i> operator.
  */
-public class SortPlan extends AbstractSortPlan {
+public class SmartSortPlan extends AbstractSortPlan {
    /**
     * Creates a sort plan for the specified query.
     * @param p the plan for the underlying query
     * @param sortfields the fields to sort by
     * @param tx the calling transaction
     */
-   public SortPlan(Plan p, List<String> sortfields, Transaction tx) {
-    super(p, sortfields, tx);
+   public SmartSortPlan(Plan p, List<String> sortfields, Transaction tx) {
+      super(p, sortfields, tx);
    }
    
    /**

@@ -5,14 +5,9 @@ import simpledb.query.*;
 import java.util.*;
 
 /**
- * The Scan class for the <i>sort</i> operator.
- * @author Edward Sciore
+ * SmartSortScan class for the sort operator.
  */
-/**
- * @author sciore
- *
- */
-public class SortScan extends AbstractSortScan {
+public class SmartSortScan extends AbstractSortScan {
    /**
     * Creates a sort scan, given a list of 1 or 2 runs.
     * If there is only 1 run, then s2 will be null and
@@ -20,7 +15,7 @@ public class SortScan extends AbstractSortScan {
     * @param runs the list of runs
     * @param comp the record comparator
     */
-   public SortScan(List<TempTable> runs, RecordComparator comp) {
+   public SmartSortScan(List<TempTable> runs, RecordComparator comp) {
       super(runs, comp);
    }
 

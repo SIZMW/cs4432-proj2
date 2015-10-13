@@ -6,10 +6,13 @@ import simpledb.query.*;
 import java.util.*;
 
 /**
- * The Plan class for the <i>mergejoin</i> operator.
- * @author Edward Sciore
+ * The Plan abstract class for the <i>mergejoin</i> operator.
  */
-public class MergeJoinPlan extends AbstractMergeJoinPlan {
+public abstract class AbstractMergeJoinPlan implements Plan {
+   protected Plan p1, p2;
+   protected String fldname1, fldname2;
+   protected Schema sch = new Schema();
+   
    /**
     * Creates a mergejoin plan for the two specified queries.
     * The RHS must be materialized after it is sorted, 
@@ -20,21 +23,25 @@ public class MergeJoinPlan extends AbstractMergeJoinPlan {
     * @param fldname2 the RHS join field
     * @param tx the calling transaction
     */
-   public MergeJoinPlan(Plan p1, Plan p2, String fldname1, String fldname2, Transaction tx) {
-      super(p1, p2, fldname1, fldname2, tx);
-    }
+   public AbstractMergeJoinPlan(Plan p1, Plan p2, String fldname1, String fldname2, Transaction tx) {
+      this.fldname1 = fldname1;
+      List<String> sortlist1 = Arrays.asList(fldname1);
+      this.p1 = new SortPlan(p1, sortlist1, tx);
+      
+      this.fldname2 = fldname2;
+      List<String> sortlist2 = Arrays.asList(fldname2);
+      this.p2 = new SortPlan(p2, sortlist2, tx);
+      
+      sch.addAll(p1.schema());
+      sch.addAll(p2.schema());
+   }
    
    /** The method first sorts its two underlying scans
      * on their join field. It then returns a mergejoin scan
      * of the two sorted table scans.
      * @see simpledb.query.Plan#open()
      */
-   @Override
-   public Scan open() {
-      Scan s1 = p1.open();
-      SortScan s2 = (SortScan) p2.open();
-      return new MergeJoinScan(s1, s2, fldname1, fldname2);
-   }
+   public abstract Scan open();
    
    /**
     * Returns the number of block acceses required to
@@ -47,10 +54,7 @@ public class MergeJoinPlan extends AbstractMergeJoinPlan {
     * of materializing and sorting the records.
     * @see simpledb.query.Plan#blocksAccessed()
     */
-   @Override
-   public int blocksAccessed() {
-      return p1.blocksAccessed() + p2.blocksAccessed();
-   }
+   public abstract int blocksAccessed();
    
    /**
     * Returns the number of records in the join.
@@ -58,12 +62,7 @@ public class MergeJoinPlan extends AbstractMergeJoinPlan {
     * <pre> R(join(p1,p2)) = R(p1)*R(p2)/max{V(p1,F1),V(p2,F2)}</pre>
     * @see simpledb.query.Plan#recordsOutput()
     */
-   @Override
-   public int recordsOutput() {
-      int maxvals = Math.max(p1.distinctValues(fldname1),
-                             p2.distinctValues(fldname2));
-      return (p1.recordsOutput() * p2.recordsOutput()) / maxvals;
-   }
+   public abstract int recordsOutput();
    
    /**
     * Estimates the distinct number of field values in the join.
@@ -71,22 +70,13 @@ public class MergeJoinPlan extends AbstractMergeJoinPlan {
     * the estimate is the same as in the appropriate underlying query.
     * @see simpledb.query.Plan#distinctValues(java.lang.String)
     */
-   @Override
-   public int distinctValues(String fldname) {
-      if (p1.schema().hasField(fldname))
-         return p1.distinctValues(fldname);
-      else
-         return p2.distinctValues(fldname);
-   }
+   public abstract int distinctValues(String fldname);
    
    /**
     * Returns the schema of the join,
     * which is the union of the schemas of the underlying queries.
     * @see simpledb.query.Plan#schema()
     */
-   @Override
-   public Schema schema() {
-      return sch;
-   }
+   public abstract Schema schema();
 }
 

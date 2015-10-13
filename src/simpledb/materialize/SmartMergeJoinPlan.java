@@ -6,10 +6,9 @@ import simpledb.query.*;
 import java.util.*;
 
 /**
- * The Plan class for the <i>mergejoin</i> operator.
- * @author Edward Sciore
+ * The SmartMergeJoin class for the mergejoin operator.
  */
-public class MergeJoinPlan extends AbstractMergeJoinPlan {
+public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
    /**
     * Creates a mergejoin plan for the two specified queries.
     * The RHS must be materialized after it is sorted, 
@@ -20,10 +19,10 @@ public class MergeJoinPlan extends AbstractMergeJoinPlan {
     * @param fldname2 the RHS join field
     * @param tx the calling transaction
     */
-   public MergeJoinPlan(Plan p1, Plan p2, String fldname1, String fldname2, Transaction tx) {
+   public SmartMergeJoinPlan(Plan p1, Plan p2, String fldname1, String fldname2, Transaction tx) {
       super(p1, p2, fldname1, fldname2, tx);
     }
-   
+
    /** The method first sorts its two underlying scans
      * on their join field. It then returns a mergejoin scan
      * of the two sorted table scans.
@@ -89,4 +88,3 @@ public class MergeJoinPlan extends AbstractMergeJoinPlan {
       return sch;
    }
 }
-

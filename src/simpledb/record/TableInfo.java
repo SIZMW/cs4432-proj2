@@ -13,6 +13,7 @@ public class TableInfo {
    private Map<String,Integer> offsets;
    private int recordlen;
    private String tblname;
+   private boolean sorted;
    
    /**
     * Creates a TableInfo object, given a table name
@@ -32,6 +33,7 @@ public class TableInfo {
          pos += lengthInBytes(fldname);
       }
       recordlen = pos;
+      sorted = false;
    }
    
    /**

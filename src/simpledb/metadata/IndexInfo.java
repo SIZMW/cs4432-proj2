@@ -6,6 +6,7 @@ import static simpledb.file.Page.BLOCK_SIZE;
 import simpledb.index.Index;
 import simpledb.index.IndexType;
 import simpledb.index.btree.BTreeIndex;
+import simpledb.index.hash.ExtensibleHashIndex;
 import simpledb.index.hash.HashIndex;
 import simpledb.record.Schema;
 import simpledb.record.TableInfo;
@@ -66,8 +67,7 @@ public class IndexInfo {
 		} else if (type.equals(IndexType.bt)) {
 			return new BTreeIndex(idxname, sch, tx);
 		} else if (type.equals(IndexType.eh)) {
-			// TODO Implement Extended Hash Index and select hash from arguments
-			return new HashIndex(idxname, sch, tx);
+			return new ExtensibleHashIndex(idxname, sch, tx);
 		} else {
 			// Return hash index if arguments are invalid
 			return new HashIndex(idxname, sch, tx);

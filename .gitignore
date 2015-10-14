@@ -19,3 +19,6 @@ bin/
 
 # Bash Scripts for testing
 *.sh
+
+# Logging information files
+*.log

@@ -1,5 +1,10 @@
 package simpledb.server;
 
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
+
 import simpledb.buffer.BufferMgr;
 import simpledb.file.FileMgr;
 import simpledb.index.planner.IndexUpdatePlanner;
@@ -27,10 +32,16 @@ public class SimpleDB {
 	public static int BUFFER_SIZE = 8;
 	public static String LOG_FILE = "simpledb.log";
 
+	public static String LOG_CS4432 = "cs4432.log";
+
 	private static FileMgr fm;
 	private static BufferMgr bm;
 	private static LogMgr logm;
 	private static MetadataMgr mdm;
+
+	// CS 4432 Project 2
+	// Logger for log file output
+	private static Logger logger;
 
 	/**
 	 * Initializes the system. This method is called during system startup.
@@ -50,6 +61,17 @@ public class SimpleDB {
 		}
 		initMetadataMgr(isnew, tx);
 		tx.commit();
+	}
+
+	/**
+	 * CS 4432 Project 1
+	 *
+	 * Returns the global SimpleDB file logger.
+	 *
+	 * @return a Logger
+	 */
+	public static Logger getLogger() {
+		return logger;
 	}
 
 	// The following initialization methods are useful for
@@ -75,6 +97,24 @@ public class SimpleDB {
 	public static void initFileAndLogMgr(String dirname) {
 		initFileMgr(dirname);
 		logm = new LogMgr(LOG_FILE);
+
+		// CS 4432 Project 2
+		// Added our own log file logging handlers
+		try {
+			FileHandler logFileHandler = new FileHandler(LOG_CS4432);
+			logFileHandler.setLevel(Level.ALL);
+
+			SimpleFormatter simpleFormatter = new SimpleFormatter();
+			logFileHandler.setFormatter(simpleFormatter);
+
+			logger = Logger.getGlobal();
+			logger.setUseParentHandlers(false);
+
+			logger.addHandler(logFileHandler);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	/**
@@ -128,7 +168,7 @@ public class SimpleDB {
 	 * @return the system's planner for SQL commands
 	 */
 	public static Planner planner() {
-		QueryPlanner qplanner = new BasicQueryPlanner();
+		QueryPlanner qplanner = new ExploitSortQueryPlanner();
 		UpdatePlanner uplanner = new IndexUpdatePlanner();
 		return new Planner(qplanner, uplanner);
 	}

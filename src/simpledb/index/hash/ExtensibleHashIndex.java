@@ -41,6 +41,8 @@ public class ExtensibleHashIndex implements Index {
 
 	protected int bucketNum = 0;
 
+	protected static final int HASH_MOD = 1610612741;
+
 	/**
 	 * Opens an extensible hash index for the specified index.
 	 *
@@ -63,13 +65,16 @@ public class ExtensibleHashIndex implements Index {
 
 		bucketTable = new TableInfo(INDEX_FILENAME, bucketInfo);
 		bucketScan = new TableScan(bucketTable, tx);
+
+		bucketScan.beforeFirst();
 	}
 
 	@Override
 	public void beforeFirst(Constant searchkey) {
 		close();
 		this.searchkey = searchkey;
-		int bucket = searchkey.hashCode() % currentNumberBuckets;
+		int bucket = searchkey.hashCode() % HASH_MOD;
+		System.out.println("BUCKET NUM: " + bucket);
 		bucketNum = bucket;
 		String tblname = idxname + bucket;
 		TableInfo ti = new TableInfo(tblname, sch);
@@ -88,7 +93,6 @@ public class ExtensibleHashIndex implements Index {
 		beforeFirst(val);
 		while (next()) {
 			if (getDataRid().equals(rid)) {
-
 				bucketScan.beforeFirst();
 				while (bucketScan.next()) {
 					if (bucketScan.getInt(BUCKET_NUM) == bucketNum) {
@@ -109,21 +113,40 @@ public class ExtensibleHashIndex implements Index {
 		return new RID(blknum, id);
 	}
 
+	protected int getMask(int bits) {
+		int sum = 0;
+		for (int i = bits - 1; i >= 0; i--) {
+			sum += Math.pow(10, i);
+		}
+		return sum;
+	}
+
 	@Override
 	public void insert(Constant val, RID rid) {
 		beforeFirst(val);
-
 		bucketScan.beforeFirst();
-
 		while (bucketScan.next()) {
-			if (bucketScan.getInt(BUCKET_NUM) == bucketNum) {
+			int num = bucketScan.getInt(BUCKET_NUM);
+			int masked = num & getMask(bucketScan.getInt(BUCKET_BITS));
+
+			int bucketMask = bucketNum & getMask(bucketScan.getInt(BUCKET_BITS));
+
+			System.out.println("MASKED: " + masked);
+			if (masked == bucketMask) {
 				if (bucketScan.getInt(BUCKET_TUPLES) >= NUM_BUCKET_TUPLES) {
 					// TODO Handle splitting buckets
+					// bucketScan.setInt(BUCKET_BITS,
+					// bucketScan.getInt(BUCKET_BITS) + 1);
+
+					// TODO Move records accordingly
+					// doTableScanInsert(val, rid);
+
 					System.out.println("HANDLE SPLITTING");
 					printBuckets();
 					return;
 				} else {
-					System.out.println("Updatre count");
+					System.out.println("UPDATE COUNT EXISTING BIT INDEX");
+
 					bucketScan.setInt(BUCKET_TUPLES, bucketScan.getInt(BUCKET_TUPLES) + 1);
 					doTableScanInsert(val, rid);
 					printBuckets();
@@ -132,15 +155,19 @@ public class ExtensibleHashIndex implements Index {
 			}
 		}
 
-		System.out.println("new item");
+		int masked = bucketNum & getMask(1);
+		System.out.println("NEW BIT ENTRY IN INDEX");
 		bucketScan.insert();
-		bucketScan.setInt(BUCKET_NUM, bucketNum);
+		bucketScan.setInt(BUCKET_NUM, masked);
 		bucketScan.setInt(BUCKET_BITS, 1);
 		bucketScan.setInt(BUCKET_TUPLES, 1);
 		doTableScanInsert(val, rid);
 		currentNumberBuckets++;
 
 		printBuckets();
+	}
+
+	protected void getRecordsToMove() {
 	}
 
 	protected void doTableScanInsert(Constant val, RID rid) {
@@ -151,15 +178,16 @@ public class ExtensibleHashIndex implements Index {
 	}
 
 	protected void printBuckets() {
+		System.out.println("\nBUCKET INDEX LISTING:");
 		bucketScan.beforeFirst();
 		System.out.println("---------START---------");
 		while (bucketScan.next()) {
-			System.out.println(bucketScan.getInt(BUCKET_NUM));
-			System.out.println(bucketScan.getInt(BUCKET_BITS));
-			System.out.println(bucketScan.getInt(BUCKET_TUPLES));
-			System.out.println("---------SPLIT---------");
+			System.out.println("NUM: " + bucketScan.getInt(BUCKET_NUM));
+			System.out.println("BIT: " + bucketScan.getInt(BUCKET_BITS));
+			System.out.println("CNT: " + bucketScan.getInt(BUCKET_TUPLES));
+			System.out.println("---------NEXT---------");
 		}
-		System.out.println("---------END---------");
+		System.out.println();
 	}
 
 	@Override

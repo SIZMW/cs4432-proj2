@@ -47,12 +47,4 @@ public class TempTable {
         nextTableNum++;
         return "temp" + nextTableNum;
     }
-
-    public boolean getSorted() {
-        return ti.getSorted();
-    }
-
-    public void setSorted(boolean new_sorted) {
-        ti.setSorted(new_sorted);
-    }
 }

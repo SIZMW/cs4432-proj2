@@ -10,14 +10,18 @@ import java.util.*;
  * The Smart Plan class for the <i>sort</i> operator.
  */
 public class SmartSortPlan extends AbstractSortPlan {
+    private TableInfo ti;
+
     /**
      * Creates a sort plan for the specified query.
      * @param p the plan for the underlying query
      * @param sortfields the fields to sort by
      * @param tx the calling transaction
      */
-    public SmartSortPlan(Plan p, List<String> sortfields, Transaction tx) {
+    public SmartSortPlan(TableInfo ti, Plan p, List<String> sortfields, Transaction tx) {
         super(p, sortfields, tx);
+
+        this.ti = ti;
     }
    
     /**
@@ -28,13 +32,29 @@ public class SmartSortPlan extends AbstractSortPlan {
      */
     @Override
     public Scan open() {
+        Boolean sorted = ti.getSorted();
+
         Scan src = p.open();
-        List<TempTable> runs = splitIntoRuns(src);
-        src.close();
-        while (runs.size() > 2) {
-            runs = doAMergeIteration(runs);
+        List<TempTable> runs;
+        // If the table is already sorted, it isn't necessary to sort again. 
+        if (!sorted) {
+            runs = splitIntoRuns(src);
+            while (runs.size() > 2) {
+                runs = doAMergeIteration(runs);
+            }
+        } else {
+            TempTable currenttemp = new TempTable(sch, tx);
+            runs.add(currenttemp);
+            UpdateScan destination = currenttemp.open();
+            while (copy(src, destination)) {
+            }
         }
+        src.close();
+        this.ti.setSorted(true);
+
         // Write temp tables generated to the file blocks
+        // get some kind of page.write()
+
         return new SmartSortScan(runs, comp);
     }
    
@@ -150,7 +170,6 @@ public class SmartSortPlan extends AbstractSortPlan {
         src1.close();
         src2.close();
         dest.close();
-        result.setSorted(true);
         return result;
     }
    

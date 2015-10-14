@@ -51,6 +51,7 @@ public class TableInfo {
       this.schema    = schema;
       this.offsets   = offsets;
       this.recordlen = recordlen;
+      sorted = false;
    }
    
    /**
@@ -95,4 +96,12 @@ public class TableInfo {
       else
          return STR_SIZE(schema.length(fldname));
    }
+
+    public boolean getSorted() {
+        return sorted;
+    }
+
+    public void setSorted(boolean new_sorted) {
+        sorted = new_sorted;
+    }
 }

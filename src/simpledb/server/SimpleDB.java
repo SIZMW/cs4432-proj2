@@ -6,6 +6,7 @@ import simpledb.index.planner.IndexUpdatePlanner;
 import simpledb.log.LogMgr;
 import simpledb.metadata.MetadataMgr;
 import simpledb.planner.BasicQueryPlanner;
+import simpledb.planner.ExploitSortQueryPlanner;
 import simpledb.planner.Planner;
 import simpledb.planner.QueryPlanner;
 import simpledb.planner.UpdatePlanner;

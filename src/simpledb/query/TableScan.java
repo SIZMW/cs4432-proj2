@@ -13,19 +13,20 @@ import simpledb.record.*;
  *
  */
 public class TableScan implements UpdateScan {
-   private RecordFile rf;
-   private Schema sch;
+    private RecordFile rf;
+    private Schema sch;
    
-   /**
-    * Creates a new table scan,
-    * and opens its corresponding record file. 
-    * @param ti the table's metadata
-    * @param tx the calling transaction
-    */
-   public TableScan(TableInfo ti, Transaction tx) {
-      rf  = new RecordFile(ti, tx);
-      sch = ti.schema();
-   }
+    /**
+     * Creates a new table scan,
+     * and opens its corresponding record file. 
+     * @param ti the table's metadata
+     * @param tx the calling transaction
+     */
+    public TableScan(TableInfo ti, Transaction tx) {
+        ti.setSorted(false);
+        rf  = new RecordFile(ti, tx);
+        sch = ti.schema();
+    }
    
    // Scan methods
    

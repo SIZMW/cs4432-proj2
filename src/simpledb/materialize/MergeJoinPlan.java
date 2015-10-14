@@ -10,6 +10,7 @@ import java.util.*;
  * @author Edward Sciore
  */
 public class MergeJoinPlan extends AbstractMergeJoinPlan {
+   private SortPlan p1, p2;
    /**
     * Creates a mergejoin plan for the two specified queries.
     * The RHS must be materialized after it is sorted, 
@@ -21,7 +22,16 @@ public class MergeJoinPlan extends AbstractMergeJoinPlan {
     * @param tx the calling transaction
     */
    public MergeJoinPlan(Plan p1, Plan p2, String fldname1, String fldname2, Transaction tx) {
-      super(p1, p2, fldname1, fldname2, tx);
+      super(fldname1, fldname2, tx);
+
+      List<String> sortlist1 = Arrays.asList(fldname1);
+      this.p1 = new SortPlan(p1, sortlist1, tx);
+
+      List<String> sortlist2 = Arrays.asList(fldname2);
+      this.p2 = new SortPlan(p2, sortlist2, tx);
+
+      sch.addAll(p1.schema());
+      sch.addAll(p2.schema());
     }
    
    /** The method first sorts its two underlying scans

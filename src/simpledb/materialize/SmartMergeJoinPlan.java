@@ -9,6 +9,7 @@ import java.util.*;
  * The SmartMergeJoin class for the mergejoin operator.
  */
 public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
+   private SmartSortPlan p1, p2;
    /**
     * Creates a mergejoin plan for the two specified queries.
     * The RHS must be materialized after it is sorted, 
@@ -20,7 +21,16 @@ public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
     * @param tx the calling transaction
     */
    public SmartMergeJoinPlan(Plan p1, Plan p2, String fldname1, String fldname2, Transaction tx) {
-      super(p1, p2, fldname1, fldname2, tx);
+      super(fldname1, fldname2, tx);
+
+      List<String> sortlist1 = Arrays.asList(fldname1);
+      this.p1 = new SmartSortPlan(p1, sortlist1, tx);
+
+      List<String> sortlist2 = Arrays.asList(fldname2);
+      this.p2 = new SmartSortPlan(p2, sortlist2, tx);
+
+      sch.addAll(p1.schema());
+      sch.addAll(p2.schema());
     }
 
    /** The method first sorts its two underlying scans
@@ -31,8 +41,8 @@ public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
    @Override
    public Scan open() {
       Scan s1 = p1.open();
-      SortScan s2 = (SortScan) p2.open();
-      return new MergeJoinScan(s1, s2, fldname1, fldname2);
+      SmartSortScan s2 = (SmartSortScan) p2.open();
+      return new SmartMergeJoinScan(s1, s2, fldname1, fldname2);
    }
    
    /**

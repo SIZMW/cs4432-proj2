@@ -6,7 +6,9 @@ import simpledb.query.*;
  * The Scan class for the <i>mergejoin</i> operator.
  * @author Edward Sciore
  */
-public class MergeJoinScan extends SmartMergeJoinScan {
+public class MergeJoinScan extends AbstractMergeJoinScan {
+    private Scan s1;
+    private SortScan s2;
    /**
     * Creates a mergejoin scan for the two underlying sorted scans.
     * @param s1 the LHS sorted scan
@@ -15,7 +17,9 @@ public class MergeJoinScan extends SmartMergeJoinScan {
     * @param fldname2 the RHS join field
     */
    public MergeJoinScan(Scan s1, SortScan s2, String fldname1, String fldname2) {
-      super(s1, s2, fldname1, fldname2);
+      super(fldname1, fldname2);
+      this.s1 = s1;
+      this.s2 = s2;
    }
    
    /**

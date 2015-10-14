@@ -6,8 +6,6 @@ import simpledb.query.*;
  * The Abstract Scan class for the <i>mergejoin</i> operator.
  */
 public abstract class AbstractMergeJoinScan implements Scan {
-   protected Scan s1;
-   protected SortScan s2;
    protected String fldname1, fldname2;
    protected Constant joinval = null;
    
@@ -18,9 +16,7 @@ public abstract class AbstractMergeJoinScan implements Scan {
     * @param fldname1 the LHS join field
     * @param fldname2 the RHS join field
     */
-   public AbstractMergeJoinScan(Scan s1, SortScan s2, String fldname1, String fldname2) {
-      this.s1 = s1;
-      this.s2 = s2;
+   public AbstractMergeJoinScan(String fldname1, String fldname2) {
       this.fldname1 = fldname1;
       this.fldname2 = fldname2;
       beforeFirst();

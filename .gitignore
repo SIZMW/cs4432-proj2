@@ -16,3 +16,6 @@ hs_err_pid*
 bin/
 
 *.lck
+
+# Bash Scripts for testing
+*.sh

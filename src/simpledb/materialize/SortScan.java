@@ -12,7 +12,12 @@ import java.util.*;
  * @author sciore
  *
  */
-public class SortScan extends AbstractSortScan {
+public class SortScan implements Scan {
+   protected UpdateScan s1, s2=null, currentscan=null;
+   protected RecordComparator comp;
+   protected boolean hasmore1, hasmore2=false;
+   protected List<RID> savedposition;
+   
    /**
     * Creates a sort scan, given a list of 1 or 2 runs.
     * If there is only 1 run, then s2 will be null and
@@ -21,7 +26,13 @@ public class SortScan extends AbstractSortScan {
     * @param comp the record comparator
     */
    public SortScan(List<TempTable> runs, RecordComparator comp) {
-      super(runs, comp);
+      this.comp = comp;
+      s1 = (UpdateScan) runs.get(0).open();
+      hasmore1 = s1.next();
+      if (runs.size() > 1) {
+         s2 = (UpdateScan) runs.get(1).open();
+         hasmore2 = s2.next();
+      }
    }
 
    /**
@@ -31,7 +42,6 @@ public class SortScan extends AbstractSortScan {
     * no current scan.
     * @see simpledb.query.Scan#beforeFirst()
     */
-   @Override
    public void beforeFirst() {
       currentscan = null;
       s1.beforeFirst();
@@ -49,7 +59,6 @@ public class SortScan extends AbstractSortScan {
     * scan is chosen to be the new current scan.
     * @see simpledb.query.Scan#next()
     */
-   @Override
    public boolean next() {
       if (currentscan != null) {
          if (currentscan == s1)
@@ -77,7 +86,6 @@ public class SortScan extends AbstractSortScan {
     * Closes the two underlying scans.
     * @see simpledb.query.Scan#close()
     */
-   @Override
    public void close() {
       s1.close();
       if (s2 != null)
@@ -89,7 +97,6 @@ public class SortScan extends AbstractSortScan {
     * of the current scan.
     * @see simpledb.query.Scan#getVal(java.lang.String)
     */
-   @Override
    public Constant getVal(String fldname) {
       return currentscan.getVal(fldname);
    }
@@ -99,7 +106,6 @@ public class SortScan extends AbstractSortScan {
     * of the current scan.
     * @see simpledb.query.Scan#getInt(java.lang.String)
     */
-   @Override
    public int getInt(String fldname) {
       return currentscan.getInt(fldname);
    }
@@ -109,7 +115,6 @@ public class SortScan extends AbstractSortScan {
     * of the current scan.
     * @see simpledb.query.Scan#getString(java.lang.String)
     */
-   @Override
    public String getString(String fldname) {
       return currentscan.getString(fldname);
    }
@@ -118,7 +123,6 @@ public class SortScan extends AbstractSortScan {
     * Returns true if the specified field is in the current scan.
     * @see simpledb.query.Scan#hasField(java.lang.String)
     */
-   @Override
    public boolean hasField(String fldname) {
       return currentscan.hasField(fldname);
    }
@@ -127,7 +131,6 @@ public class SortScan extends AbstractSortScan {
     * Saves the position of the current record,
     * so that it can be restored at a later time.
     */
-   @Override
    public void savePosition() {
       RID rid1 = s1.getRid();
       RID rid2 = (s2 == null) ? null : s2.getRid();
@@ -137,7 +140,6 @@ public class SortScan extends AbstractSortScan {
    /**
     * Moves the scan to its previously-saved position.
     */
-   @Override
    public void restorePosition() {
       RID rid1 = savedposition.get(0);
       RID rid2 = savedposition.get(1);

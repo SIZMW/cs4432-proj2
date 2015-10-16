@@ -37,6 +37,14 @@ public class Transaction {
       recoveryMgr = new RecoveryMgr(txnum);
       concurMgr   = new ConcurrencyMgr();
    }
+
+    /**
+     *
+     * @return txnum
+     */
+    public int txnum() {
+        return txnum;
+    }
    
    /**
     * Commits the current transaction.

@@ -11,6 +11,9 @@ import java.util.*;
  */
 public class MergeJoinPlan extends AbstractMergeJoinPlan {
    private SortPlan p1, p2;
+   private String fldname1, fldname2;
+    private Schema sch = new Schema();
+    
    /**
     * Creates a mergejoin plan for the two specified queries.
     * The RHS must be materialized after it is sorted, 
@@ -22,7 +25,8 @@ public class MergeJoinPlan extends AbstractMergeJoinPlan {
     * @param tx the calling transaction
     */
    public MergeJoinPlan(Plan p1, Plan p2, String fldname1, String fldname2, Transaction tx) {
-      super(fldname1, fldname2, tx);
+      this.fldname1 = fldname1;
+      this.fldname2 = fldname2;
 
       List<String> sortlist1 = Arrays.asList(fldname1);
       this.p1 = new SortPlan(p1, sortlist1, tx);

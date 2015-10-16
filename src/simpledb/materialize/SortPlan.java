@@ -21,21 +21,22 @@ public class SortPlan extends AbstractSortPlan {
     super(p, sortfields, tx);
    }
    
-   /**
-    * This method is where most of the action is.
-    * Up to 2 sorted temporary tables are created,
-    * and are passed into SortScan for final merging.
-    * @see simpledb.query.Plan#open()
-    */
-   @Override
-   public Scan open() {
-      Scan src = p.open();
-      List<TempTable> runs = splitIntoRuns(src);
-      src.close();
-      while (runs.size() > 2)
-         runs = doAMergeIteration(runs);
-      return new SortScan(runs, comp);
-   }
+    /**
+     * This method is where most of the action is.
+     * Up to 2 sorted temporary tables are created,
+     * and are passed into SortScan for final merging.
+     * @see simpledb.query.Plan#open()
+     */
+    @Override
+    public Scan open() {
+        Scan src = p.open();
+        List<TempTable> runs = splitIntoRuns(src);
+        src.close();
+        while (runs.size() > 2) {
+            runs = doAMergeIteration(runs);
+        }
+        return new SortScan(runs, comp);
+    }
    
    /**
     * Returns the number of blocks in the sorted table,

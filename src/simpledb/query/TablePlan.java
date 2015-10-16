@@ -3,6 +3,7 @@ package simpledb.query;
 import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 import simpledb.metadata.*;
+import simpledb.query.*;
 import simpledb.record.*;
 
 /** The Plan class corresponding to a table.

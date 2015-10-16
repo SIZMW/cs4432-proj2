@@ -48,8 +48,8 @@ public class SortQueryPlanner implements QueryPlanner {
         for (String field1: p1.schema().fields()) {
             String field2 = pred.equatesWithField(field1);
             if (field2 != null && p2.schema().hasField(field2)) {
-                SimpleDB.getLogger().log(Level.INFO, "Creating new SmartMergeJoinPlan");
-                Plan plan = new MergeJoinPlan(p1, p2, field1, field2, trans);
+                SimpleDB.getLogger().log(Level.INFO, "Creating new MergeJoinPlan");
+                return new MergeJoinPlan(p1, p2, field1, field2, trans);
             }
         }
         return null;

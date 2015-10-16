@@ -120,8 +120,9 @@ public class RecordFile {
     */
    public void insert() {
       while (!rp.insert()) {
-         if (atLastBlock())
+         if (atLastBlock()) {
             appendBlock();
+          }
          moveTo(currentblknum + 1);
       }
    }
@@ -158,7 +159,7 @@ public class RecordFile {
    }
    
    private void appendBlock() {
-      RecordFormatter fmtr = new RecordFormatter(ti);
-      tx.append(filename, fmtr);
+        RecordFormatter fmtr = new RecordFormatter(ti);
+        tx.append(filename, fmtr);
    }
 }

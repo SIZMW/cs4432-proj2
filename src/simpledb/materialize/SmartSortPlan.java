@@ -1,13 +1,19 @@
 package simpledb.materialize;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import simpledb.query.Plan;
 import simpledb.query.Scan;
 import simpledb.query.UpdateScan;
 import simpledb.record.Schema;
 import simpledb.record.TableInfo;
+import simpledb.query.Constant;
+import simpledb.query.TablePlan;
+import simpledb.query.TableScan;
+import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 
 /**
@@ -41,51 +47,119 @@ public class SmartSortPlan extends AbstractSortPlan {
     @Override
     public Scan open() {
         Boolean sorted = false;
+        String tableName = "Temp Table";
 
         if (p instanceof TablePlan) {
             TablePlan tp = (TablePlan) p;
+            tableName = tp.getTableInfo().tableName();
             sorted = tp.getTableInfo().getSorted();
             if (tp.getTableInfo().getSortFields().size() == this.sortFields.size()) {
                 for (int i = 0; i < this.sortFields.size(); i++) {
                     if (!(tp.getTableInfo().getSortFields().get(i).equals(this.sortFields.get(i)))) {
+                        System.out.println("Sorted fields of table and query do not match");
                         sorted = false;
                     }
                 }
             } else {
-                    sorted = false;
+                System.out.println("Length of sorted fields of table and query do not match");
+                sorted = false;
             }
         }
 
-        Scan src = p.open();
-        List<TempTable> runs = new ArrayList<TempTable>();
+        List<TempTable> runs;
         // If the table is already sorted, it isn't necessary to sort again.
         if (!sorted) {
+            System.out.println("Sorting table " + tableName);
+            
+            Scan src = p.open();
             runs = splitIntoRuns(src);
+            src.close();
+            
             while (runs.size() > 2) {
                 runs = doAMergeIteration(runs);
             }
         } else {
+            System.out.println("Table already sorted " + tableName);
+            
             runs = new ArrayList<TempTable>();
+            
             TempTable currenttemp = new TempTable(sch, tx);
+            
             runs.add(currenttemp);
-            UpdateScan destination = currenttemp.open();
-            boolean hasMore = copy(src, destination);
-            while (hasMore) {
-                hasMore = copy(src, destination);
-            }
-        }
-        src.close();
 
+            UpdateScan destination = currenttemp.open();
+            Scan src = p.open();
+
+            src.beforeFirst();
+            destination.beforeFirst();
+            int i = 0;
+            while (src.next()) {
+                destination.insert();
+                System.out.println(i);
+                for (String fldname : sch.fields()) {
+                    System.out.println("B");
+                    destination.setVal(fldname, src.getVal(fldname));
+                    System.out.println("C");
+                }
+
+                if (comp.compare(src, destination) < 0) {
+                    System.out.println("A");
+                    // start a new run
+                    destination.close();
+                    currenttemp = new TempTable(sch, tx);
+                    runs.add(currenttemp);
+                    destination = currenttemp.open();
+                }
+                i++;
+            }
+            destination.close();
+            src.close();
+        }
+
+        // Write the new records to the table
         if (p instanceof TablePlan) {
             TablePlan tp = (TablePlan) p;
-            tp.getTableInfo().setSorted(true);
-            tp.getTableInfo().setSortFields(this.sortFields);
+
+            String fileName = tp.getTableInfo().fileName();
+
+            System.out.println("Copying records to " + tableName);
+
+            UpdateScan destination = (UpdateScan) tp.open();
+            Scan sortedScan = new SortScan(runs, comp);
+
+            sortedScan.beforeFirst();
+            destination.beforeFirst();
+            int i = 0;
+            while(sortedScan.next() && destination.next()) {
+                // destination.insert();
+                // Overwrite the values
+                for (String fldname : sch.fields()) {
+                    destination.setVal(fldname, sortedScan.getVal(fldname));
+                    System.out.println(i + ": " + fldname + " " + sortedScan.getVal(fldname));
+                }
+                i++;
+            }
+
+            System.out.println("Done copying records");
+            sortedScan.close();
+            destination.close();
+
+            // Modify table metadata
+            TablePlan mdplan = new TablePlan("tblcat", tx);
+            UpdateScan mdscan = (UpdateScan) mdplan.open();
+            mdscan.beforeFirst();
+            while (mdscan.next()) {
+                if (mdscan.getString("tblname").equals(tableName)) {
+                    mdscan.setString("sortname", sortFields.get(0));
+                }
+            }
+            mdscan.close();
         }
 
         // Write temp tables generated to the file blocks
         // get some kind of page.write()
 
-        return new SmartSortScan(runs, comp);
+        return new SortScan(runs, comp);
     }
 
     /**

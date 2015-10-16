@@ -33,7 +33,7 @@ import simpledb.tx.Transaction;
  * @author Edward Sciore
  */
 public class SimpleDB {
-    public static int BUFFER_SIZE = 8;
+    public static int BUFFER_SIZE = 32;
     public static String LOG_FILE = "simpledb.log";
 
     public static String LOG_CS4432 = "cs4432.log";

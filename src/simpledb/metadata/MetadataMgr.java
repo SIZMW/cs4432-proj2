@@ -24,6 +24,10 @@ public class MetadataMgr {
         tblmgr.createTable(tblname, sch, tx);
     }
 
+    public void createTable(String tblname, Schema sch, Transaction tx, String sortedField) {
+        tblmgr.createTable(tblname, sch, tx, sortedField);
+    }
+
     public TableInfo getTableInfo(String tblname, Transaction tx) {
         return tblmgr.getTableInfo(tblname, tx);
     }

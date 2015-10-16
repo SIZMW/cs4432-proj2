@@ -51,18 +51,28 @@ public class TableMgr {
    }
    
    /**
-    * Creates a new table having the specified name and schema.
+    * Pass-through
     * @param tblname the name of the new table
     * @param sch the table's schema
     * @param tx the transaction creating the table
     */
    public void createTable(String tblname, Schema sch, Transaction tx) {
+        createTable(tblname, sch, tx, "");
+   }
+
+   /**
+    * Creates a new table having the specified name and schema.
+    * @param tblname the name of the new table
+    * @param sch the table's schema
+    * @param tx the transaction creating the table
+    */
+   public void createTable(String tblname, Schema sch, Transaction tx, String sortedField) {
       TableInfo ti = new TableInfo(tblname, sch);
       // insert one record into tblcat
       RecordFile tcatfile = new RecordFile(tcatInfo, tx);
       tcatfile.insert();
       tcatfile.setString("tblname", tblname);
-      tcatfile.setString("sortname", "");
+      tcatfile.setString("sortname", sortedField);
       tcatfile.setInt("reclength", ti.recordLength());
       tcatfile.close();
       

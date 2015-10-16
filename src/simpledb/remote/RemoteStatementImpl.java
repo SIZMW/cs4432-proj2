@@ -37,12 +37,12 @@ class RemoteStatementImpl extends UnicastRemoteObject implements RemoteStatement
             Plan pln = SimpleDB.planner().createQueryPlan(qry, tx);
 
             // Report performance logging
-            long elapsedTime = System.nanoTime() - startTime;
+            float elapsedTime = ((float)(System.nanoTime() - startTime)/1000)/1000;
             long iosDone = SimpleDB.fileMgr().getIos() - initIos;
             SimpleDB.getLogger().log(Level.INFO, 
                 "Query Executed" +
                 "\n\t" + qry +
-                "\n\tTime elapsed: " + elapsedTime + " ns" + 
+                "\n\tTime elapsed: " + elapsedTime + " ms" + 
                 "\n\tIOs done: " + iosDone);
             return new RemoteResultSetImpl(pln, rconn);
         }
@@ -69,12 +69,12 @@ class RemoteStatementImpl extends UnicastRemoteObject implements RemoteStatement
             rconn.commit();
             
             // Report performance logging
-            long elapsedTime = System.nanoTime() - startTime;
+            float elapsedTime = ((float)(System.nanoTime() - startTime)/1000)/1000;
             long iosDone = SimpleDB.fileMgr().getIos() - initIos;
             SimpleDB.getLogger().log(Level.INFO, 
                 "Update Executed" +
                 "\n\t" + cmd +
-                "\n\tTime elapsed: " + elapsedTime + " ns" + 
+                "\n\tTime elapsed: " + elapsedTime + " ms" + 
                 "\n\tIOs done: " + iosDone);
             
             return result;

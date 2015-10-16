@@ -9,8 +9,6 @@ import java.util.*;
  * The Plan abstract class for the <i>mergejoin</i> operator.
  */
 public abstract class AbstractMergeJoinPlan implements Plan {
-   protected String fldname1, fldname2;
-   protected Schema sch = new Schema();
    
    /**
     * Creates a mergejoin plan for the two specified queries.
@@ -22,11 +20,7 @@ public abstract class AbstractMergeJoinPlan implements Plan {
     * @param fldname2 the RHS join field
     * @param tx the calling transaction
     */
-   public AbstractMergeJoinPlan(String fldname1, String fldname2, Transaction tx) {
-      this.fldname1 = fldname1;
-      
-      this.fldname2 = fldname2;
-   }
+   public AbstractMergeJoinPlan() {}
    
    /** The method first sorts its two underlying scans
      * on their join field. It then returns a mergejoin scan

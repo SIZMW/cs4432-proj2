@@ -109,7 +109,6 @@ public class FileMgr {
      */
     public synchronized int size(String filename) {
         try {
-            ios++;
             FileChannel fc = getFile(filename);
             return (int)(fc.size() / BLOCK_SIZE);
         }
@@ -146,6 +145,22 @@ public class FileMgr {
         }
         ios++;
         return fc;
+    }
+
+    /**
+     * Deletes a file
+     * @param filename the specified filename
+     * @throws IOException
+     */
+    public void deleteFile(String filename) throws IOException {
+        FileChannel fc = openFiles.get(filename);
+        if (fc != null) {
+            fc.close();
+            openFiles.remove(filename);
+            File dbTable = new File(dbDirectory, filename);
+            dbTable.delete();
+            ios++;
+        }
     }
 
     /**

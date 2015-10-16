@@ -81,6 +81,14 @@ public class TableInfo {
     }
    
    /**
+    * Returns the name assigned to this table.
+    * @return the name of the table
+    */
+   public String tableName() {
+      return tblname;
+   }
+
+   /**
     * Returns the filename assigned to this table.
     * Currently, the filename is the table name
     * followed by ".tbl".

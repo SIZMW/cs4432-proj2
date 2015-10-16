@@ -10,14 +10,12 @@ import simpledb.file.FileMgr;
 import simpledb.index.planner.IndexUpdatePlanner;
 import simpledb.log.LogMgr;
 import simpledb.metadata.MetadataMgr;
-
-import simpledb.planner.BasicQueryPlanner;
-import simpledb.planner.SortQueryPlanner;
-import simpledb.planner.ExploitSortQueryPlanner;
 import simpledb.opt.HeuristicQueryPlanner;
-
+import simpledb.planner.BasicQueryPlanner;
+import simpledb.planner.ExploitSortQueryPlanner;
 import simpledb.planner.Planner;
 import simpledb.planner.QueryPlanner;
+import simpledb.planner.SortQueryPlanner;
 import simpledb.planner.UpdatePlanner;
 import simpledb.tx.Transaction;
 
@@ -65,7 +63,7 @@ public class SimpleDB {
      * @param dirname
      *            the name of the database directory
      * @param initQueryPlanner
-     *      The query planner to use
+     *            The query planner to use
      */
     public static void init(String dirname, String initQueryPlanner) {
         queryPlanner = initQueryPlanner;
@@ -195,7 +193,7 @@ public class SimpleDB {
         } else if (queryPlanner.equals("heuristic")) {
             System.out.println("Using HeuristicQueryPlanner");
             qplanner = new HeuristicQueryPlanner();
-        } else  if (queryPlanner.equals("sort")) {
+        } else if (queryPlanner.equals("sort")) {
             System.out.println("Using SortQueryPlanner");
             qplanner = new SortQueryPlanner();
         } else {
@@ -204,4 +202,5 @@ public class SimpleDB {
         }
         UpdatePlanner uplanner = new IndexUpdatePlanner();
         return new Planner(qplanner, uplanner);
-    }}
+    }
+}

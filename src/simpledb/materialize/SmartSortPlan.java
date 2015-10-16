@@ -5,9 +5,9 @@ import java.util.List;
 
 import simpledb.query.Plan;
 import simpledb.query.Scan;
+import simpledb.query.TablePlan;
 import simpledb.query.UpdateScan;
 import simpledb.record.Schema;
-import simpledb.record.TableInfo;
 import simpledb.tx.Transaction;
 
 /**
@@ -29,7 +29,7 @@ public class SmartSortPlan extends AbstractSortPlan {
     public SmartSortPlan(Plan p, List<String> sortfields, Transaction tx) {
         super(p, sortfields, tx);
 
-        this.sortFields = sortfields;
+        sortFields = sortfields;
     }
 
     /**
@@ -45,14 +45,14 @@ public class SmartSortPlan extends AbstractSortPlan {
         if (p instanceof TablePlan) {
             TablePlan tp = (TablePlan) p;
             sorted = tp.getTableInfo().getSorted();
-            if (tp.getTableInfo().getSortFields().size() == this.sortFields.size()) {
-                for (int i = 0; i < this.sortFields.size(); i++) {
-                    if (!(tp.getTableInfo().getSortFields().get(i).equals(this.sortFields.get(i)))) {
+            if (tp.getTableInfo().getSortFields().size() == sortFields.size()) {
+                for (int i = 0; i < sortFields.size(); i++) {
+                    if (!(tp.getTableInfo().getSortFields().get(i).equals(sortFields.get(i)))) {
                         sorted = false;
                     }
                 }
             } else {
-                    sorted = false;
+                sorted = false;
             }
         }
 
@@ -79,7 +79,7 @@ public class SmartSortPlan extends AbstractSortPlan {
         if (p instanceof TablePlan) {
             TablePlan tp = (TablePlan) p;
             tp.getTableInfo().setSorted(true);
-            tp.getTableInfo().setSortFields(this.sortFields);
+            tp.getTableInfo().setSortFields(sortFields);
         }
 
         // Write temp tables generated to the file blocks

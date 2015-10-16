@@ -285,6 +285,7 @@ public class ExtensibleHashIndex implements Index {
 
         // Insert the new value
         insert(val, rid);
+        tblsn.close();
     }
 
     /**
@@ -308,6 +309,7 @@ public class ExtensibleHashIndex implements Index {
         tblsn.setInt("block", rid.blockNumber());
         tblsn.setInt("id", rid.id());
         tblsn.setVal("dataval", val);
+        tblsn.close();
     }
 
     /**
@@ -346,6 +348,7 @@ public class ExtensibleHashIndex implements Index {
         tblsn.setInt("block", rid.blockNumber());
         tblsn.setInt("id", rid.id());
         tblsn.setVal("dataval", val);
+        tblsn.close();
 
         // Increment the number of global bits
         currentBucketCount++;

@@ -11,6 +11,7 @@ import simpledb.index.planner.IndexUpdatePlanner;
 import simpledb.log.LogMgr;
 import simpledb.metadata.MetadataMgr;
 import simpledb.planner.BasicQueryPlanner;
+import simpledb.planner.SortQueryPlanner;
 import simpledb.planner.ExploitSortQueryPlanner;
 import simpledb.planner.Planner;
 import simpledb.planner.QueryPlanner;
@@ -39,17 +40,34 @@ public class SimpleDB {
 	private static LogMgr logm;
 	private static MetadataMgr mdm;
 
+	// Whether or not to use SmartMergeJoin
+	private static boolean smartMerge;
+
 	// CS 4432 Project 2
 	// Logger for log file output
 	private static Logger logger;
+
+	/**
+	 * Passthrough to the full constructor
+	 *
+	 * @param dirname 
+	 *	The name of the database directory
+	 */
+	public static void init(String dirname) {
+		init(dirname, false);
+	}
 
 	/**
 	 * Initializes the system. This method is called during system startup.
 	 *
 	 * @param dirname
 	 *            the name of the database directory
+	 * @param smart
+	 *	Whether or not to use the smart merge join
 	 */
-	public static void init(String dirname) {
+	public static void init(String dirname, boolean smart) {
+		smartMerge = smart;
+
 		initFileLogAndBufferMgr(dirname);
 		Transaction tx = new Transaction();
 		boolean isnew = fm.isNew();
@@ -168,7 +186,14 @@ public class SimpleDB {
 	 * @return the system's planner for SQL commands
 	 */
 	public static Planner planner() {
-		QueryPlanner qplanner = new ExploitSortQueryPlanner();
+		QueryPlanner qplanner;
+		if (smartMerge) {
+			System.out.println("Using ExploitSortQueryPlanner");
+			qplanner = new ExploitSortQueryPlanner();
+		} else {
+			System.out.println("Using SortQueryPlanner");
+			qplanner = new SortQueryPlanner();
+		}
 		UpdatePlanner uplanner = new IndexUpdatePlanner();
 		return new Planner(qplanner, uplanner);
 	}

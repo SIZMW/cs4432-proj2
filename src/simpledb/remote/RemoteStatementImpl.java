@@ -30,7 +30,6 @@ class RemoteStatementImpl extends UnicastRemoteObject implements RemoteStatement
     public RemoteResultSet executeQuery(String qry) throws RemoteException {
         try {
             // Begin performance logging
-            SimpleDB.getLogger().log(Level.INFO, "Executing query " + qry);
             long initIos = SimpleDB.fileMgr().getIos();
             long startTime = System.nanoTime();
             
@@ -38,10 +37,13 @@ class RemoteStatementImpl extends UnicastRemoteObject implements RemoteStatement
             Plan pln = SimpleDB.planner().createQueryPlan(qry, tx);
 
             // Report performance logging
-            long elapsedTime = System.nanoTime();
-            SimpleDB.getLogger().log(Level.INFO, "Time elapsed: " + elapsedTime + " ns");
+            long elapsedTime = System.nanoTime() - startTime;
             long iosDone = SimpleDB.fileMgr().getIos() - initIos;
-            SimpleDB.getLogger().log(Level.INFO, "IOs done: " + iosDone);
+            SimpleDB.getLogger().log(Level.INFO, 
+                "Query Executed" +
+                "\n\t" + qry +
+                "\n\tTime elapsed: " + elapsedTime + " ns" + 
+                "\n\tIOs done: " + iosDone);
             return new RemoteResultSetImpl(pln, rconn);
         }
         catch(RuntimeException e) {
@@ -59,19 +61,21 @@ class RemoteStatementImpl extends UnicastRemoteObject implements RemoteStatement
     public int executeUpdate(String cmd) throws RemoteException {
         try {
             // Begin performance logging
-            SimpleDB.getLogger().log(Level.INFO, "Executing update " + cmd);
             long initIos = SimpleDB.fileMgr().getIos();
             long startTime = System.nanoTime();
 
             Transaction tx = rconn.getTransaction();
             int result = SimpleDB.planner().executeUpdate(cmd, tx);
             rconn.commit();
-            long elapsedTime = System.nanoTime();
             
             // Report performance logging
-            SimpleDB.getLogger().log(Level.INFO, "Time elapsed: " + elapsedTime + " ns");
+            long elapsedTime = System.nanoTime() - startTime;
             long iosDone = SimpleDB.fileMgr().getIos() - initIos;
-            SimpleDB.getLogger().log(Level.INFO, "IOs done: " + iosDone);
+            SimpleDB.getLogger().log(Level.INFO, 
+                "Update Executed" +
+                "\n\t" + cmd +
+                "\n\tTime elapsed: " + elapsedTime + " ns" + 
+                "\n\tIOs done: " + iosDone);
             
             return result;
         }

@@ -14,45 +14,71 @@ public class TableInfo {
    private int recordlen;
    private String tblname;
    private boolean sorted;
+   private List<String> sortFields;
    
-   /**
-    * Creates a TableInfo object, given a table name
-    * and schema. The constructor calculates the
-    * physical offset of each field.
-    * This constructor is used when a table is created. 
-    * @param tblname the name of the table
-    * @param schema the schema of the table's records
-    */
-   public TableInfo(String tblname, Schema schema) {
-      this.schema = schema;
-      this.tblname = tblname;
-      offsets  = new HashMap<String,Integer>();
-      int pos = 0;
-      for (String fldname : schema.fields()) {
-         offsets.put(fldname, pos);
-         pos += lengthInBytes(fldname);
-      }
-      recordlen = pos;
-      sorted = false;
-   }
-   
-   /**
-    * Creates a TableInfo object from the 
-    * specified metadata.
-    * This constructor is used when the metadata
-    * is retrieved from the catalog.
-    * @param tblname the name of the table
-    * @param schema the schema of the table's records
-    * @param offsets the already-calculated offsets of the fields within a record
-    * @param recordlen the already-calculated length of each record
-    */
-   public TableInfo(String tblname, Schema schema, Map<String,Integer> offsets, int recordlen) {
-      this.tblname   = tblname;
-      this.schema    = schema;
-      this.offsets   = offsets;
-      this.recordlen = recordlen;
-      sorted = false;
-   }
+    /**
+     * Creates a TableInfo object, given a table name
+     * and schema. The constructor calculates the
+     * physical offset of each field.
+     * This constructor is used when a table is created. 
+     * @param tblname the name of the table
+     * @param schema the schema of the table's records
+     */
+    public TableInfo(
+        String tblname, 
+        Schema schema
+        ) {
+        this(tblname, schema, new HashMap<String,Integer>(), 0, false, new ArrayList<String>());
+        for (String fldname : this.schema.fields()) {
+            this.offsets.put(fldname, this.recordlen);
+            this.recordlen += lengthInBytes(fldname);
+        }
+    }
+
+    /**
+     * Creates a TableInfo object from the 
+     * specified metadata.
+     * This constructor is used when the metadata
+     * is retrieved from the catalog.
+     * @param tblname the name of the table
+     * @param schema the schema of the table's records
+     * @param offsets the already-calculated offsets of the fields within a record
+     * @param recordlen the already-calculated length of each record
+     */
+    public TableInfo(
+        String tblname, 
+        Schema schema, 
+        Map<String,Integer> offsets, 
+        int recordlen
+        ) {
+        this(tblname, schema, offsets, recordlen, false, new ArrayList<String>());
+    }
+
+    /**
+     * Creates a TableInfo object from the 
+     * specified metadata.
+     * This constructor is used when the metadata
+     * is retrieved from the catalog.
+     * @param tblname the name of the table
+     * @param schema the schema of the table's records
+     * @param offsets the already-calculated offsets of the fields within a record
+     * @param recordlen the already-calculated length of each record
+     */
+    public TableInfo(
+        String tblname, 
+        Schema schema, 
+        Map<String,Integer> offsets, 
+        int recordlen, 
+        boolean sorted,
+        List<String> sortFields
+        ) {
+        this.tblname   = tblname;
+        this.schema    = schema;
+        this.offsets   = offsets;
+        this.recordlen = recordlen;
+        this.sorted = sorted;
+        this.sortFields = sortFields;
+    }
    
    /**
     * Returns the filename assigned to this table.
@@ -103,5 +129,13 @@ public class TableInfo {
 
     public void setSorted(boolean new_sorted) {
         sorted = new_sorted;
+    }
+
+    public List<String> getSortFields() {
+        return sortFields;
+    }
+
+    public void setSortFields(List<String> new_sortFields) {
+        sortFields = new_sortFields;
     }
 }

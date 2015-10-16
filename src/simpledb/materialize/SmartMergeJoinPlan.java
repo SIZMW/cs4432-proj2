@@ -21,7 +21,6 @@ public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
      * @param tx the calling transaction
      */
     public SmartMergeJoinPlan(
-      TableInfo t1, TableInfo t2, 
       Plan p1, Plan p2, 
       String fldname1, String fldname2, 
       Transaction tx
@@ -29,10 +28,10 @@ public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
         super(fldname1, fldname2, tx);
 
         List<String> sortlist1 = Arrays.asList(fldname1);
-        this.p1 = new SmartSortPlan(t1, p1, sortlist1, tx);
+        this.p1 = new SmartSortPlan(p1, sortlist1, tx);
 
         List<String> sortlist2 = Arrays.asList(fldname2);
-        this.p2 = new SmartSortPlan(t2, p2, sortlist2, tx);
+        this.p2 = new SmartSortPlan(p2, sortlist2, tx);
 
         sch.addAll(p1.schema());
         sch.addAll(p2.schema());

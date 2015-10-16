@@ -10,7 +10,7 @@ import java.util.*;
  * The Smart Plan class for the <i>sort</i> operator.
  */
 public class SmartSortPlan extends AbstractSortPlan {
-    private TableInfo ti;
+    private List<String> sortFields;
 
     /**
      * Creates a sort plan for the specified query.
@@ -18,10 +18,10 @@ public class SmartSortPlan extends AbstractSortPlan {
      * @param sortfields the fields to sort by
      * @param tx the calling transaction
      */
-    public SmartSortPlan(TableInfo ti, Plan p, List<String> sortfields, Transaction tx) {
+    public SmartSortPlan(Plan p, List<String> sortfields, Transaction tx) {
         super(p, sortfields, tx);
 
-        this.ti = ti;
+        this.sortFields = sortfields;
     }
    
     /**
@@ -32,7 +32,21 @@ public class SmartSortPlan extends AbstractSortPlan {
      */
     @Override
     public Scan open() {
-        Boolean sorted = ti.getSorted();
+        Boolean sorted = false;
+
+        if (p instanceof TablePlan) {
+            TablePlan tp = (TablePlan) p;
+            sorted = tp.getTableInfo().getSorted();
+            if (tp.getTableInfo().getSortFields().size() == this.sortFields.size()) {
+                for (int i = 0; i < this.sortFields.size(); i++) {
+                    if (!(tp.getTableInfo().getSortFields().get(i).equals(this.sortFields.get(i)))) {
+                        sorted = false;
+                    }
+                }
+            } else {
+                    sorted = false;
+            }
+        }
 
         Scan src = p.open();
         List<TempTable> runs;
@@ -43,14 +57,22 @@ public class SmartSortPlan extends AbstractSortPlan {
                 runs = doAMergeIteration(runs);
             }
         } else {
+            runs = new ArrayList<TempTable>();
             TempTable currenttemp = new TempTable(sch, tx);
             runs.add(currenttemp);
             UpdateScan destination = currenttemp.open();
-            while (copy(src, destination)) {
+            boolean hasMore = copy(src, destination);
+            while (hasMore) {
+                hasMore = copy(src, destination);
             }
         }
         src.close();
-        this.ti.setSorted(true);
+
+        if (p instanceof TablePlan) {
+            TablePlan tp = (TablePlan) p;
+            tp.getTableInfo().setSorted(true);
+            tp.getTableInfo().setSortFields(this.sortFields);
+        }
 
         // Write temp tables generated to the file blocks
         // get some kind of page.write()

@@ -7,6 +7,7 @@ import java.util.logging.Level;
 
 import simpledb.query.Plan;
 import simpledb.query.Scan;
+import simpledb.query.TablePlan;
 import simpledb.query.UpdateScan;
 import simpledb.record.Schema;
 import simpledb.record.TableInfo;
@@ -35,7 +36,7 @@ public class SmartSortPlan extends AbstractSortPlan {
     public SmartSortPlan(Plan p, List<String> sortfields, Transaction tx) {
         super(p, sortfields, tx);
 
-        this.sortFields = sortfields;
+        sortFields = sortfields;
     }
 
     /**
@@ -53,15 +54,24 @@ public class SmartSortPlan extends AbstractSortPlan {
             TablePlan tp = (TablePlan) p;
             tableName = tp.getTableInfo().tableName();
             sorted = tp.getTableInfo().getSorted();
+<<<<<<< HEAD
             if (tp.getTableInfo().getSortFields().size() == this.sortFields.size()) {
                 for (int i = 0; i < this.sortFields.size(); i++) {
                     if (!(tp.getTableInfo().getSortFields().get(i).equals(this.sortFields.get(i)))) {
                         System.out.println("Sorted fields of table and query do not match");
+=======
+            if (tp.getTableInfo().getSortFields().size() == sortFields.size()) {
+                for (int i = 0; i < sortFields.size(); i++) {
+                    if (!(tp.getTableInfo().getSortFields().get(i).equals(sortFields.get(i)))) {
+>>>>>>> fdaa78f69b53ec7c4910fcea82239023d155c880
                         sorted = false;
                     }
                 }
             } else {
+<<<<<<< HEAD
                 System.out.println("Length of sorted fields of table and query do not match");
+=======
+>>>>>>> fdaa78f69b53ec7c4910fcea82239023d155c880
                 sorted = false;
             }
         }
@@ -119,6 +129,7 @@ public class SmartSortPlan extends AbstractSortPlan {
         // Write the new records to the table
         if (p instanceof TablePlan) {
             TablePlan tp = (TablePlan) p;
+<<<<<<< HEAD
 
             String fileName = tp.getTableInfo().fileName();
 
@@ -154,6 +165,10 @@ public class SmartSortPlan extends AbstractSortPlan {
                 }
             }
             mdscan.close();
+=======
+            tp.getTableInfo().setSorted(true);
+            tp.getTableInfo().setSortFields(sortFields);
+>>>>>>> fdaa78f69b53ec7c4910fcea82239023d155c880
         }
 
         // Write temp tables generated to the file blocks

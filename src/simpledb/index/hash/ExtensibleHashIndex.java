@@ -34,6 +34,10 @@ public class ExtensibleHashIndex implements Index {
 
     // Index file name
     protected final String INDEX_FILENAME = "ehindexfile";
+    protected final String GLOBAL_FILENAME = "ehglbl";
+
+    // Global field names
+    protected final String GLOBAL_FIELD = "global";
 
     // Index field names
     protected final String BUCKET_NUM = "bucketnum";
@@ -42,7 +46,12 @@ public class ExtensibleHashIndex implements Index {
     protected final String BUCKET_FILE_NAME = "indexfilename";
 
     // Maximum number of tuples in an index bucket
-    protected final int NUM_BUCKET_TUPLES = 20000;
+    protected final int NUM_BUCKET_TUPLES = 100;
+
+    // Global information
+    protected Schema globalSchema;
+    protected TableInfo globalInfo;
+    protected TableScan globalScan;
 
     // Index information
     protected Schema indexBucketSchema;
@@ -67,8 +76,21 @@ public class ExtensibleHashIndex implements Index {
         this.sch = sch;
         this.tx = tx;
 
-        // TODO Global extensible hash index values are not correct when
-        // rereading from disk
+        globalSchema = new Schema();
+        globalSchema.addIntField(GLOBAL_FIELD);
+
+        globalInfo = new TableInfo(GLOBAL_FILENAME, globalSchema);
+        globalScan = new TableScan(globalInfo, tx);
+
+        globalScan.beforeFirst();
+        globalScan.next();
+
+        try {
+            currentBitCount = globalScan.getInt(GLOBAL_FIELD);
+        } catch (Exception e) {
+            currentBitCount = 0;
+            System.out.println("No global bit count on disk.");
+        }
 
         // Set up the bucket table schema
         indexBucketSchema = new Schema();
@@ -81,6 +103,19 @@ public class ExtensibleHashIndex implements Index {
         indexBucketTableScan = new TableScan(indexBucketTableInfo, tx);
 
         indexBucketTableScan.beforeFirst();
+    }
+
+    /**
+     * Writes the global bit count to the global index file.
+     */
+    public void setGlobalBits() {
+        globalScan.beforeFirst();
+        while (globalScan.next()) {
+            globalScan.delete();
+            globalScan.beforeFirst();
+        }
+        globalScan.insert();
+        globalScan.setInt(GLOBAL_FIELD, currentBitCount);
     }
 
     /**
@@ -168,7 +203,7 @@ public class ExtensibleHashIndex implements Index {
                     return;
                 } else {
                     insertExistingIndexBucket(val, rid);
-                    printExtensibleHashIndexInformation();
+                    // printExtensibleHashIndexInformation();
                     return;
                 }
             }
@@ -176,7 +211,7 @@ public class ExtensibleHashIndex implements Index {
 
         // Insert a new bucket for the new value at the global number of bits
         insertNewIndexBucket(val, rid, currentBucketNumber & getMask(currentBitCount), currentBitCount);
-        printExtensibleHashIndexInformation();
+        // printExtensibleHashIndexInformation();
     }
 
     /**
@@ -195,9 +230,9 @@ public class ExtensibleHashIndex implements Index {
         indexBucketTableScan.setInt(BUCKET_BITS, indexBucketTableScan.getInt(BUCKET_BITS) + 1);
 
         // Check if global index needs to be incremented
-        // TODO Check if this should be >= or just >
-        if (indexBucketTableScan.getInt(BUCKET_BITS) >= currentBitCount) {
+        if (indexBucketTableScan.getInt(BUCKET_BITS) > currentBitCount) {
             currentBitCount++;
+            setGlobalBits();
         }
 
         // Open the file for the current bucket that is full
@@ -241,7 +276,7 @@ public class ExtensibleHashIndex implements Index {
         indexBucketTableScan.setString(BUCKET_FILE_NAME, idxname + newN);
         indexBucketTableScan.beforeFirst();
 
-        printExtensibleHashIndexInformation();
+        // printExtensibleHashIndexInformation();
 
         // Reinsert the records that were marked for removal
         for (Constant k : resortList) {
@@ -250,6 +285,7 @@ public class ExtensibleHashIndex implements Index {
 
         // Insert the new value
         insert(val, rid);
+        tblsn.close();
     }
 
     /**
@@ -273,6 +309,7 @@ public class ExtensibleHashIndex implements Index {
         tblsn.setInt("block", rid.blockNumber());
         tblsn.setInt("id", rid.id());
         tblsn.setVal("dataval", val);
+        tblsn.close();
     }
 
     /**
@@ -298,9 +335,9 @@ public class ExtensibleHashIndex implements Index {
         indexBucketTableScan.setString(BUCKET_FILE_NAME, idxname + maskedBucketNumber);
 
         // Check if the number of global bits needs to be incremented
-        // TODO Check if this should be >= or just >
-        if (bits >= currentBitCount) {
+        if (bits > currentBitCount) {
             currentBitCount++;
+            setGlobalBits();
         }
 
         TableScan tblsn = getTableByFileName(indexBucketTableScan.getString(BUCKET_FILE_NAME));
@@ -311,6 +348,7 @@ public class ExtensibleHashIndex implements Index {
         tblsn.setInt("block", rid.blockNumber());
         tblsn.setInt("id", rid.id());
         tblsn.setVal("dataval", val);
+        tblsn.close();
 
         // Increment the number of global bits
         currentBucketCount++;

@@ -7,11 +7,7 @@ public class Startup {
     public static void main(String args[]) throws Exception {
         // configure and initialize the database
         if (args.length > 1) {
-            if (args[1] == "smart") {
-                SimpleDB.init(args[0], true);
-            } else {
-                SimpleDB.init(args[0], false);
-            }
+            SimpleDB.init(args[0], args[1]);
         } else {
             SimpleDB.init(args[0]);
         }

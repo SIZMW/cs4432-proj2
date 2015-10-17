@@ -71,7 +71,8 @@ public class TablePlan implements Plan {
    }
 
     /**
-     *
+     * CS 4432 Project 2
+     * 
      * @return The tableinfo of this table
      */
     public TableInfo getTableInfo() {

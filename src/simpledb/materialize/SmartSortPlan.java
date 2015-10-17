@@ -18,6 +18,7 @@ import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 
 /**
+ * CS 4432 Project 2
  * The Smart Plan class for the <i>sort</i> operator.
  */
 public class SmartSortPlan implements Plan {
@@ -91,10 +92,9 @@ public class SmartSortPlan implements Plan {
         } else {
             System.out.println("Table already sorted " + tableName);
             
-            runs = new ArrayList<TempTable>();
-            
             TempTable currenttemp = new TempTable(sch, tx);
             
+            runs = new ArrayList<TempTable>();
             runs.add(currenttemp);
 
             UpdateScan destination = currenttemp.open();
@@ -103,6 +103,7 @@ public class SmartSortPlan implements Plan {
             src.beforeFirst();
             destination.beforeFirst();
 
+            // Copy all records of tableplan over into runs
             while (src.next()) {
                 destination.insert();
                 for (String fldname : sch.fields()) {
@@ -157,9 +158,6 @@ public class SmartSortPlan implements Plan {
             }
             mdscan.close();
         }
-
-        // Write temp tables generated to the file blocks
-        // get some kind of page.write()
 
         return new SortScan(runs, comp);
     }

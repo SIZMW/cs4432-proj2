@@ -7,6 +7,10 @@ import java.util.*;
 /**
  * The metadata about a table and its records.
  * @author Edward Sciore
+ *
+ * CS 4432 Project 2
+ * 
+ * Sortfields and a boolean flag were added 
  */
 public class TableInfo {
    private Schema schema;

@@ -6,6 +6,7 @@ import simpledb.query.*;
 import java.util.*;
 
 /**
+ * CS 4432 Project 2
  * The SmartMergeJoin class for the mergejoin operator.
  */
 public class SmartMergeJoinPlan implements Plan {

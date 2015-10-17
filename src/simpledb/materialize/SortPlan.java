@@ -39,6 +39,10 @@ public class SortPlan implements Plan {
       Scan src = p.open();
       List<TempTable> runs = splitIntoRuns(src);
       src.close();
+        /*
+         * CS 4432 Project 2
+         * Logging information
+         */
         int i = 0;
         while (runs.size() > 2) {
             i++;

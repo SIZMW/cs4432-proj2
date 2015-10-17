@@ -11,6 +11,10 @@ import java.util.*;
  * previously-created table.
  * @author Edward Sciore
  *
+ * CS 4432 Project 2
+ *
+ *  File was modified to support storing the sorted table flag on disk
+ *
  */
 public class TableMgr {
    /**

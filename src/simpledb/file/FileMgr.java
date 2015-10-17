@@ -20,6 +20,11 @@ import java.util.*;
  * Method {@link #size(String) size} is called by the log manager and transaction manager to
  * determine the end of the file.
  * @author Edward Sciore
+ *
+ * CS 4432 Project 2
+ *
+ * IO logging is done here. 
+ * Each time a file is read, written, updated, or deleted, the IO count is incremented.
  */
 public class FileMgr {
     private File dbDirectory;
@@ -148,6 +153,8 @@ public class FileMgr {
     }
 
     /**
+     * CS 4432 Project 2
+     * 
      * Deletes a file
      * @param filename the specified filename
      * @throws IOException

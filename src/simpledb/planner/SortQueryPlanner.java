@@ -10,8 +10,9 @@ import simpledb.materialize.MergeJoinPlan;
 import java.util.*;
 
 /**
+ * CS 4432 Project 2
+ * 
  * Always uses MergeJoinPlan.
- * @author lwang5
  */
 public class SortQueryPlanner implements QueryPlanner {
     /**

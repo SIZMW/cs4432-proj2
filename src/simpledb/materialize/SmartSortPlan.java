@@ -20,9 +20,13 @@ import simpledb.tx.Transaction;
 /**
  * The Smart Plan class for the <i>sort</i> operator.
  */
-public class SmartSortPlan extends AbstractSortPlan {
+public class SmartSortPlan implements Plan {
     private List<String> sortFields;
-
+    private Plan p;
+    private Transaction tx;
+    private Schema sch;
+    private RecordComparator comp;
+   
     /**
      * Creates a sort plan for the specified query.
      *
@@ -34,8 +38,11 @@ public class SmartSortPlan extends AbstractSortPlan {
      *            the calling transaction
      */
     public SmartSortPlan(Plan p, List<String> sortfields, Transaction tx) {
-        super(p, sortfields, tx);
-
+        this.p = p;
+        this.tx = tx;
+        sch = p.schema();
+        comp = new RecordComparator(sortfields);
+        
         sortFields = sortfields;
     }
 
@@ -45,7 +52,6 @@ public class SmartSortPlan extends AbstractSortPlan {
      *
      * @see simpledb.query.Plan#open()
      */
-    @Override
     public Scan open() {
         Boolean sorted = false;
         String tableName = "Temp Table";
@@ -57,12 +63,12 @@ public class SmartSortPlan extends AbstractSortPlan {
             if (tp.getTableInfo().getSortFields().size() == this.sortFields.size()) {
                 for (int i = 0; i < this.sortFields.size(); i++) {
                     if (!(tp.getTableInfo().getSortFields().get(i).equals(this.sortFields.get(i)))) {
-                        System.out.println("Sorted fields of table and query do not match");
+                        // System.out.println("Sorted fields of table and query do not match");
                         sorted = false;
                     }
                 }
             } else {
-                System.out.println("Length of sorted fields of table and query do not match");
+                // System.out.println("Length of sorted fields of table and query do not match");
                 sorted = false;
             }
         }
@@ -76,7 +82,10 @@ public class SmartSortPlan extends AbstractSortPlan {
             runs = splitIntoRuns(src);
             src.close();
             
+            int i = 0;
             while (runs.size() > 2) {
+                i++;
+                System.out.println("Doing merge iteration #" + i + ", Merging " + runs.size() + " runs.");
                 runs = doAMergeIteration(runs);
             }
         } else {
@@ -93,25 +102,20 @@ public class SmartSortPlan extends AbstractSortPlan {
 
             src.beforeFirst();
             destination.beforeFirst();
-            int i = 0;
+
             while (src.next()) {
                 destination.insert();
-                System.out.println(i);
                 for (String fldname : sch.fields()) {
-                    System.out.println("B");
                     destination.setVal(fldname, src.getVal(fldname));
-                    System.out.println("C");
                 }
 
                 if (comp.compare(src, destination) < 0) {
-                    System.out.println("A");
                     // start a new run
                     destination.close();
                     currenttemp = new TempTable(sch, tx);
                     runs.add(currenttemp);
                     destination = currenttemp.open();
                 }
-                i++;
             }
             destination.close();
             src.close();
@@ -123,25 +127,22 @@ public class SmartSortPlan extends AbstractSortPlan {
 
             String fileName = tp.getTableInfo().fileName();
 
-            System.out.println("Copying records to " + tableName);
-
             UpdateScan destination = (UpdateScan) tp.open();
             Scan sortedScan = new SortScan(runs, comp);
 
             sortedScan.beforeFirst();
             destination.beforeFirst();
-            int i = 0;
+            // int i = 0;
             while(sortedScan.next() && destination.next()) {
                 // destination.insert();
                 // Overwrite the values
                 for (String fldname : sch.fields()) {
                     destination.setVal(fldname, sortedScan.getVal(fldname));
-                    System.out.println(i + ": " + fldname + " " + sortedScan.getVal(fldname));
+                    // System.out.println(i + ": " + fldname + " " + sortedScan.getVal(fldname));
                 }
-                i++;
+                // i++;
             }
 
-            System.out.println("Done copying records");
             sortedScan.close();
             destination.close();
 
@@ -170,7 +171,6 @@ public class SmartSortPlan extends AbstractSortPlan {
      *
      * @see simpledb.query.Plan#blocksAccessed()
      */
-    @Override
     public int blocksAccessed() {
         // does not include the one-time cost of sorting
         Plan mp = new MaterializePlan(p, tx); // not opened; just for analysis
@@ -183,7 +183,6 @@ public class SmartSortPlan extends AbstractSortPlan {
      *
      * @see simpledb.query.Plan#recordsOutput()
      */
-    @Override
     public int recordsOutput() {
         return p.recordsOutput();
     }
@@ -194,7 +193,6 @@ public class SmartSortPlan extends AbstractSortPlan {
      *
      * @see simpledb.query.Plan#distinctValues(java.lang.String)
      */
-    @Override
     public int distinctValues(String fldname) {
         return p.distinctValues(fldname);
     }
@@ -205,12 +203,10 @@ public class SmartSortPlan extends AbstractSortPlan {
      *
      * @see simpledb.query.Plan#schema()
      */
-    @Override
     public Schema schema() {
         return sch;
     }
 
-    @Override
     protected List<TempTable> splitIntoRuns(Scan src) {
         List<TempTable> temps = new ArrayList<TempTable>();
         src.beforeFirst();
@@ -233,7 +229,6 @@ public class SmartSortPlan extends AbstractSortPlan {
         return temps;
     }
 
-    @Override
     protected List<TempTable> doAMergeIteration(List<TempTable> runs) {
         List<TempTable> result = new ArrayList<TempTable>();
         while (runs.size() > 1) {
@@ -247,7 +242,6 @@ public class SmartSortPlan extends AbstractSortPlan {
         return result;
     }
 
-    @Override
     protected TempTable mergeTwoRuns(TempTable p1, TempTable p2) {
         Scan src1 = p1.open();
         Scan src2 = p2.open();
@@ -279,7 +273,6 @@ public class SmartSortPlan extends AbstractSortPlan {
         return result;
     }
 
-    @Override
     protected boolean copy(Scan src, UpdateScan dest) {
         dest.insert();
         for (String fldname : sch.fields()) {

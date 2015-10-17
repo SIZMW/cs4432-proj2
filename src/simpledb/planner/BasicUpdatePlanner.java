@@ -49,6 +49,18 @@ public class BasicUpdatePlanner implements UpdatePlanner {
 			count++;
 		}
 		us.close();
+
+        // Modify table metadata
+        TablePlan mdplan = new TablePlan("tblcat", tx);
+        UpdateScan mdscan = (UpdateScan) mdplan.open();
+        mdscan.beforeFirst();
+        while (mdscan.next()) {
+            if (mdscan.getString("tblname").equals(data.tableName())) {
+                mdscan.setString("sortname", "");
+            }
+        }
+        mdscan.close();
+        
 		return count;
 	}
 
@@ -63,6 +75,18 @@ public class BasicUpdatePlanner implements UpdatePlanner {
 			us.setVal(fldname, val);
 		}
 		us.close();
+
+        // Modify table metadata
+        TablePlan mdplan = new TablePlan("tblcat", tx);
+        UpdateScan mdscan = (UpdateScan) mdplan.open();
+        mdscan.beforeFirst();
+        while (mdscan.next()) {
+            if (mdscan.getString("tblname").equals(data.tableName())) {
+                mdscan.setString("sortname", "");
+            }
+        }
+        mdscan.close();
+
 		return 1;
 	}
 

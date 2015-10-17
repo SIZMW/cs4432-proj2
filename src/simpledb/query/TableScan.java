@@ -23,7 +23,6 @@ public class TableScan implements UpdateScan {
      * @param tx the calling transaction
      */
     public TableScan(TableInfo ti, Transaction tx) {
-        ti.setSorted(false);
         rf  = new RecordFile(ti, tx);
         sch = ti.schema();
     }

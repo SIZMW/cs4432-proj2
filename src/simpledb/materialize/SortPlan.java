@@ -10,7 +10,12 @@ import java.util.*;
  * The Plan class for the <i>sort</i> operator.
  * @author Edward Sciore
  */
-public class SortPlan extends AbstractSortPlan {
+public class SortPlan implements Plan {
+   private Plan p;
+   private Transaction tx;
+   private Schema sch;
+   private RecordComparator comp;
+   
    /**
     * Creates a sort plan for the specified query.
     * @param p the plan for the underlying query
@@ -18,25 +23,30 @@ public class SortPlan extends AbstractSortPlan {
     * @param tx the calling transaction
     */
    public SortPlan(Plan p, List<String> sortfields, Transaction tx) {
-    super(p, sortfields, tx);
+      this.p = p;
+      this.tx = tx;
+      sch = p.schema();
+      comp = new RecordComparator(sortfields);
    }
    
-    /**
-     * This method is where most of the action is.
-     * Up to 2 sorted temporary tables are created,
-     * and are passed into SortScan for final merging.
-     * @see simpledb.query.Plan#open()
-     */
-    @Override
-    public Scan open() {
-        Scan src = p.open();
-        List<TempTable> runs = splitIntoRuns(src);
-        src.close();
+   /**
+    * This method is where most of the action is.
+    * Up to 2 sorted temporary tables are created,
+    * and are passed into SortScan for final merging.
+    * @see simpledb.query.Plan#open()
+    */
+   public Scan open() {
+      Scan src = p.open();
+      List<TempTable> runs = splitIntoRuns(src);
+      src.close();
+        int i = 0;
         while (runs.size() > 2) {
+            i++;
+            System.out.println("Doing merge iteration #" + i + ", Merging " + runs.size() + " runs.");
             runs = doAMergeIteration(runs);
         }
-        return new SortScan(runs, comp);
-    }
+      return new SortScan(runs, comp);
+   }
    
    /**
     * Returns the number of blocks in the sorted table,
@@ -46,7 +56,6 @@ public class SortPlan extends AbstractSortPlan {
     * of materializing and sorting the records.
     * @see simpledb.query.Plan#blocksAccessed()
     */
-   @Override
    public int blocksAccessed() {
       // does not include the one-time cost of sorting
       Plan mp = new MaterializePlan(p, tx); // not opened; just for analysis
@@ -58,7 +67,6 @@ public class SortPlan extends AbstractSortPlan {
     * which is the same as in the underlying query.
     * @see simpledb.query.Plan#recordsOutput()
     */
-   @Override
    public int recordsOutput() {
       return p.recordsOutput();
    }
@@ -69,7 +77,6 @@ public class SortPlan extends AbstractSortPlan {
     * the underlying query.
     * @see simpledb.query.Plan#distinctValues(java.lang.String)
     */
-   @Override
    public int distinctValues(String fldname) {
       return p.distinctValues(fldname);
    }
@@ -79,13 +86,11 @@ public class SortPlan extends AbstractSortPlan {
     * is the same as in the underlying query.
     * @see simpledb.query.Plan#schema()
     */
-   @Override
    public Schema schema() {
       return sch;
    }
    
-   @Override
-   protected List<TempTable> splitIntoRuns(Scan src) {
+   private List<TempTable> splitIntoRuns(Scan src) {
       List<TempTable> temps = new ArrayList<TempTable>();
       src.beforeFirst();
       if (!src.next())
@@ -105,8 +110,7 @@ public class SortPlan extends AbstractSortPlan {
       return temps;
    }
    
-   @Override
-   protected List<TempTable> doAMergeIteration(List<TempTable> runs) {
+   private List<TempTable> doAMergeIteration(List<TempTable> runs) {
       List<TempTable> result = new ArrayList<TempTable>();
       while (runs.size() > 1) {
          TempTable p1 = runs.remove(0);
@@ -118,8 +122,7 @@ public class SortPlan extends AbstractSortPlan {
       return result;
    }
    
-   @Override
-   protected TempTable mergeTwoRuns(TempTable p1, TempTable p2) {
+   private TempTable mergeTwoRuns(TempTable p1, TempTable p2) {
       Scan src1 = p1.open();
       Scan src2 = p2.open();
       TempTable result = new TempTable(sch, tx);
@@ -145,8 +148,7 @@ public class SortPlan extends AbstractSortPlan {
       return result;
    }
    
-   @Override
-   protected boolean copy(Scan src, UpdateScan dest) {
+   private boolean copy(Scan src, UpdateScan dest) {
       dest.insert();
       for (String fldname : sch.fields())
          dest.setVal(fldname, src.getVal(fldname));

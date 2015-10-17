@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * The SmartMergeJoin class for the mergejoin operator.
  */
-public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
+public class SmartMergeJoinPlan implements Plan {
     private SmartSortPlan p1, p2;
     private String fldname1, fldname2;
     private Schema sch = new Schema();
@@ -45,7 +45,6 @@ public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
       * of the two sorted table scans.
       * @see simpledb.query.Plan#open()
       */
-    @Override
     public Scan open() {
         Scan s1 = p1.open();
         SortScan s2 = (SortScan) p2.open();
@@ -63,7 +62,6 @@ public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
      * of materializing and sorting the records.
      * @see simpledb.query.Plan#blocksAccessed()
      */
-    @Override
     public int blocksAccessed() {
         return p1.blocksAccessed() + p2.blocksAccessed();
     }
@@ -74,7 +72,6 @@ public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
      * <pre> R(join(p1,p2)) = R(p1)*R(p2)/max{V(p1,F1),V(p2,F2)}</pre>
      * @see simpledb.query.Plan#recordsOutput()
      */
-    @Override
     public int recordsOutput() {
         int maxvals = Math.max(p1.distinctValues(fldname1),
                                p2.distinctValues(fldname2));
@@ -87,7 +84,6 @@ public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
      * the estimate is the same as in the appropriate underlying query.
      * @see simpledb.query.Plan#distinctValues(java.lang.String)
      */
-    @Override
     public int distinctValues(String fldname) {
         if (p1.schema().hasField(fldname))
             return p1.distinctValues(fldname);
@@ -100,7 +96,6 @@ public class SmartMergeJoinPlan extends AbstractMergeJoinPlan {
      * which is the union of the schemas of the underlying queries.
      * @see simpledb.query.Plan#schema()
      */
-    @Override
     public Schema schema() {
         return sch;
     }

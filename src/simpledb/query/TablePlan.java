@@ -26,13 +26,13 @@ public class TablePlan implements Plan {
       si = SimpleDB.mdMgr().getStatInfo(tblname, ti, tx);
    }
    
-   /**
-    * Creates a table scan for this query.
-    * @see simpledb.query.Plan#open()
-    */
-   public Scan open() {
-      return new TableScan(ti, tx);
-   }
+    /**
+     * Creates a table scan for this query.
+     * @see simpledb.query.Plan#open()
+     */
+    public Scan open() {
+        return new TableScan(ti, tx);
+    }
    
    /**
     * Estimates the number of block accesses for the table,

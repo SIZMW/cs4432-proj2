@@ -188,16 +188,12 @@ public class SimpleDB {
     public static Planner planner() {
         QueryPlanner qplanner;
         if (queryPlanner.equals("smart")) {
-            System.out.println("Using ExploitSortQueryPlanner");
             qplanner = new ExploitSortQueryPlanner();
         } else if (queryPlanner.equals("heuristic")) {
-            System.out.println("Using HeuristicQueryPlanner");
             qplanner = new HeuristicQueryPlanner();
         } else if (queryPlanner.equals("sort")) {
-            System.out.println("Using SortQueryPlanner");
             qplanner = new SortQueryPlanner();
         } else {
-            System.out.println("Using BasicQueryPlanner");
             qplanner = new BasicQueryPlanner();
         }
         UpdatePlanner uplanner = new IndexUpdatePlanner();
